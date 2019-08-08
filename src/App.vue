@@ -1,19 +1,19 @@
 <template>
   <div id="app">
     <HelloWorld/>
-    <todulist/>
+   
   </div>
 </template>
 
 <script>
 import HelloWorld from './components/HelloWorld'
-import todulist from './components/todulist'
+
 
 export default {
   name: 'App',
   components: {
     HelloWorld,
-    todulist
+    
   }
 }
 </script>

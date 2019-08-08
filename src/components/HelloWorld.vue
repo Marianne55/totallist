@@ -1,6 +1,6 @@
 <template>
  <div>
-   <Form ref="formCustom" :model="formCustom" :rules="ruleCustom" :label-width="80">
+   <Form ref="formCustom" :model="formCustom" :rules="ruleCustom" :label-width="80" style="border-style:solid">
         <FormItem label="title" prop="title">
             <Input type="text" v-model="formCustom.title"></Input>
         </FormItem>
@@ -15,6 +15,7 @@
             <Button @click="handleReset('formCustom')" style="margin-left: 8px">Reset</Button>
         </FormItem>
     </Form>
+    <br/>
     <FlexTable 
         :loading="loading" 
         :columns="columns" 
@@ -23,48 +24,53 @@
         @on-selection-cancel="onSelectionCancel"
         @on-all-cancel="onAllCancel">
         <template slot-scope="{ row, index }" slot="operation">
-            <Button @click="handleModal = true">View</Button>
+            <Button @click="show(row,index)">View</Button>
             <Button @click="remove(index)">Delete</Button>
         </template>
     ></FlexTable>
    <Modal
      title="修改"
      v-model="handleModal"
+     @on-ok="ok"
   >
-    <Form ref="formValidate" :model="formCustom" :label-width="80">
+    <Form ref="formValidate" :model="formValidate" :label-width="80">
       <FormItem label="title" prop="title">
-            <Input type="text" v-model="formCustom.title"></Input>
+            <Input type="text" v-model="formValidate.title"></Input>
         </FormItem>
         <FormItem label="state" prop="state">
-            <Input type="text" v-model="formCustom.state"></Input>
+            <Input type="text" v-model="formValidate.state"></Input>
         </FormItem>
         <FormItem label="data" prop="data">
-            <Input type="text" v-model="formCustom.data" number></Input>
+            <Input type="text" v-model="formValidate.data" number></Input>
         </FormItem>
-      <FormItem>
-        <Button type="primary" @click="handleSubmit('formValidate')">提交</Button>
-      </FormItem>
     </Form>
    </Modal>
+   <br/>
+   <br/>
+   <br/>
+   <Input search enter-button="search" @on-search="search" v-model="value" placeholder="请输入标题查询"  />
+   <br/>
+   <FlexTable 
+        :loading="loading" 
+        :columns="columns1" 
+        :data="sea"
+        @on-selection-change="onSelectionChange"
+        @on-selection-cancel="onSelectionCancel"
+        @on-all-cancel="onAllCancel">
+    ></FlexTable>
 </div>
+      
 </template>
 <script>
 import { FlexTable } from 'tm-flextable';
-const aTestList = [];
-
-    const oTestData = {
-        title: '完成表格学习',
-        state: '未完成',
-        data: '2016-10-03',
-    };
-    aTestList.push(oTestData);
-
 export default {
     components:{
          FlexTable 
      },
     data(){
         return {
+           index : 0,
+           value :'',
            handleModal: false,
             columns: [
                 {
@@ -95,15 +101,48 @@ export default {
                     type: 'slot',
                 },
             ],
+            columns1: [
+                {
+                    type: 'selection',
+                    width: 20,
+                    align: 'center',
+                    fixed: 'left'
+                },
+                {
+                    title: '标题',
+                    key: 'title',
+                },
+                {
+                    title: '状态',
+                    key: 'state',
+                    render(h, params){
+                        return h('span', params.row.state)
+                    }
+                },
+               
+                {
+                    title: 'Date',
+                    key: 'data',
+                },
+            ],
             loading: false,
-            list: aTestList,
+            list:[],
+            sea: [],
             formCustom: {
                     title: '',
                     state: '',
                     data: ''
                 },
-  
-            
+            formValidate: {
+                    title: '',
+                    state: '',
+                    data: ''
+                },
+            formSearch: {
+                    title: '',
+                    state: '',
+                    data: ''
+                },
             ruleCustom: {
 
             }
@@ -121,23 +160,38 @@ export default {
             console.log('onAllCancel', cancelSelection);
         },
         handleSubmit (name) {
-                this.$refs[name].validate((valid) => {
-                    if (valid) {
-                        this.$Message.success('Success!');
-                         var params = JSON.parse(JSON.stringify(this.formCustom))
-                         aTestList.push(params)
-                    } else {
-                        this.$Message.error('Fail!');
-                          }
-                     })
+                    this.$Message.success('Success!');
+                    var params = JSON.parse(JSON.stringify(this.formCustom))
+                    this.list.push(params)
           },
-         show(index) {
-            alert('show ' + index);
+         show(row,index) {
+            this.handleModal = !this.handleModal
+            this.formValidate.title = row.title
+            this.formValidate.state = row.state
+            this.formValidate.data = row.data
+            this.index = index
+            
+
         },
          remove(index) {
-            aTestList.splice(index, 1)
+            this.list.splice(index, 1)
         },
-      
+         ok(){
+           
+            this.list[this.index].title = this.formValidate.title
+            this.list[this.index].state = this.formValidate.state
+            this.list[this.index].data = this.formValidate.data
+         },
+         search(value){
+             this.sea = []
+             var that = this.value
+             var target =this.list.filter(function(x){
+                 return x.title.indexOf(that) > -1
+             })
+             console.log(target)
+            this.sea.push(...target)              
+             
+         },
     }
 }
 </script>
